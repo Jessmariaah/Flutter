@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       title: 'CRUD SQLite',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        primarySwatch: Colors.blue,
         useMaterial3: true,
       ),
       home: const UserListScreen(),
