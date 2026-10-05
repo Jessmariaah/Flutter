@@ -1,16 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
-import '../models/user_model.dart';
+import '../models/user.dart';
 
 class DatabaseHelper {
-  static final DatabaseHelper _instance = DatabaseHelper._internal();
-  factory DatabaseHelper() => _instance;
-  DatabaseHelper._internal();
-
+  static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
   static Database? _database;
+
+  DatabaseHelper._privateConstructor();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -19,51 +15,40 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    // Configuração para rodar no Navegador (Web)
-    if (kIsWeb) {
-      var databaseFactory = databaseFactoryFfiWeb;
-      return await databaseFactory.openDatabase(
-        'users.db',
-        options: OpenDatabaseOptions(
-          version: 1,
-          onCreate: (db, version) {
-            return db.execute(
-              'CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT)',
-            );
-          },
-        ),
-      );
-    }
-
-    // Configuração para rodar no Android / iOS / Desktop
     String path = join(await getDatabasesPath(), 'users.db');
     return await openDatabase(
       path,
       version: 1,
-      onCreate: (db, version) {
-        return db.execute(
-          'CREATE TABLE users(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, email TEXT)',
-        );
-      },
+      onCreate: _onCreate,
     );
   }
 
-  // CREATE
+  Future _onCreate(Database db, int version) async {
+    await db.execute('''
+      CREATE TABLE users(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        email TEXT
+      )
+    ''');
+  }
+
   Future<int> insertUser(UserModel user) async {
-    Database db = await database;
+    Database db = await instance.database;
     return await db.insert('users', user.toMap());
   }
 
-  // READ
   Future<List<UserModel>> getUsers() async {
-    Database db = await database;
-    List<Map<String, dynamic>> maps = await db.query('users');
-    return List.generate(maps.length, (i) => UserModel.fromMap(maps[i]));
+    Database db = await instance.database;
+    var users = await db.query('users');
+    List<UserModel> userList = users.isNotEmpty
+        ? users.map((c) => UserModel.fromMap(c)).toList()
+        : [];
+    return userList;
   }
 
-  // UPDATE
   Future<int> updateUser(UserModel user) async {
-    Database db = await database;
+    Database db = await instance.database;
     return await db.update(
       'users',
       user.toMap(),
@@ -72,9 +57,8 @@ class DatabaseHelper {
     );
   }
 
-  // DELETE
   Future<int> deleteUser(int id) async {
-    Database db = await database;
+    Database db = await instance.database;
     return await db.delete(
       'users',
       where: 'id = ?',
