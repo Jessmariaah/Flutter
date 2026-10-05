@@ -127,19 +127,20 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
       borderRadius: BorderRadius.circular(12),
       child: Ink(
         decoration: BoxDecoration(
-          Colors.deepPurple.withValues(alpha: 0.5)
+          color: Colors.deepPurple.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
-          Colors.deepPurple.withValues(alpha: 0.5)
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 48, color: cor),
             const SizedBox(height: 8),
-            Text(titulo, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: cor)),
+            Text(
+              titulo,
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+            ),
           ],
         ),
       ),
     );
   }
-}
