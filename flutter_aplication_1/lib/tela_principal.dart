@@ -112,36 +112,36 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
             ),
           ],
         ),
-      ),
-    );
-  }
+     ), // Padding
+      ); // Scaffold
+    }
 
-  Widget _criarBotaoMenu({
-    required IconData icon,
-    required String titulo,
-    required Color cor,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Ink(
-        decoration: BoxDecoration(
-          color: Colors.deepPurple.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(12),
+    Widget _criarBotaoMenu({
+      required IconData icon,
+      required String titulo,
+      required Color cor,
+      required VoidCallback onTap,
+    }) {
+      return InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: Colors.deepPurple.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 48, color: cor),
+              const SizedBox(height: 8),
+              Text(
+                titulo,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 48, color: cor),
-            const SizedBox(height: 8),
-            Text(
-              titulo,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
-        ),
-      ),
-    );
+      );
+    }
   }
-}
