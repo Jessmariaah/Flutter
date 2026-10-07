@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../database/database_helper.dart';
 import '../models/user.dart';
+import '../database/database_helper.dart';
 
 class UserFormScreen extends StatefulWidget {
   final UserModel? user;
@@ -15,6 +15,7 @@ class _UserFormScreenState extends State<UserFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController(); // Controlador do telefone
 
   @override
   void initState() {
@@ -22,26 +23,35 @@ class _UserFormScreenState extends State<UserFormScreen> {
     if (widget.user != null) {
       _nameController.text = widget.user!.name;
       _emailController.text = widget.user!.email;
+      _phoneController.text = widget.user!.telefone;
     }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 
   void _saveUser() async {
     if (_formKey.currentState!.validate()) {
-      final name = _nameController.text;
-      final email = _emailController.text;
+      final user = UserModel(
+        id: widget.user?.id,
+        name: _nameController.text,
+        email: _emailController.text,
+        telefone: _phoneController.text,
+      );
 
       if (widget.user == null) {
-        await DatabaseHelper.instance.insertUser(
-          UserModel(name: name, email: email),
-        );
+        await DatabaseHelper.instance.insertUser(user);
       } else {
-        await DatabaseHelper.instance.updateUser(
-          UserModel(id: widget.user!.id, name: name, email: email),
-        );
+        await DatabaseHelper.instance.updateUser(user);
       }
 
       if (mounted) {
-        Navigator.of(context).pop();
+        Navigator.pop(context, true);
       }
     }
   }
@@ -50,7 +60,7 @@ class _UserFormScreenState extends State<UserFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.user == null ? 'Novo Utilizador' : 'Editar Utilizador'),
+        title: Text(widget.user == null ? 'Novo Usuário' : 'Editar Usuário'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -61,24 +71,30 @@ class _UserFormScreenState extends State<UserFormScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(labelText: 'Nome'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor insira o nome';
-                  }
-                  return null;
-                },
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Informe o nome' : null,
               ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor insira o email';
-                  }
-                  return null;
-                },
+                decoration: const InputDecoration(labelText: 'E-mail'),
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Informe o e-mail' : null,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Telefone',
+                  hintText: '(00) 00000-0000',
+                  prefixIcon: Icon(Icons.phone),
+                ),
+                keyboardType: TextInputType.phone,
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Informe o telefone' : null,
+              ),
+              const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _saveUser,
                 child: const Text('Salvar'),

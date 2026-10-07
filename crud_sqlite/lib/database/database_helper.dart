@@ -3,52 +3,59 @@ import 'package:sqflite/sqflite.dart';
 import '../models/user.dart';
 
 class DatabaseHelper {
-  static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
+  static final DatabaseHelper instance = DatabaseHelper._init();
   static Database? _database;
 
-  DatabaseHelper._privateConstructor();
+  DatabaseHelper._init();
 
   Future<Database> get database async {
     if (_database != null) return _database!;
-    _database = await _initDatabase();
+    _database = await _initDB('users.db');
     return _database!;
   }
 
-  Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'users.db');
+  Future<Database> _initDB(String filePath) async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, filePath);
+
     return await openDatabase(
       path,
-      version: 1,
-      onCreate: _onCreate,
+      version: 2, // Incrementado para atualizar a estrutura
+      onCreate: _createDB,
+      onUpgrade: _onUpgrade,
     );
   }
 
-  Future _onCreate(Database db, int version) async {
+  Future _createDB(Database db, int version) async {
     await db.execute('''
       CREATE TABLE users(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        email TEXT
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        telefone TEXT NOT NULL
       )
     ''');
   }
 
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute("ALTER TABLE users ADD COLUMN telefone TEXT DEFAULT ''");
+    }
+  }
+
   Future<int> insertUser(UserModel user) async {
-    Database db = await instance.database;
+    final db = await instance.database;
     return await db.insert('users', user.toMap());
   }
 
   Future<List<UserModel>> getUsers() async {
-    Database db = await instance.database;
-    var users = await db.query('users');
-    List<UserModel> userList = users.isNotEmpty
-        ? users.map((c) => UserModel.fromMap(c)).toList()
-        : [];
-    return userList;
+    final db = await instance.database;
+    final result = await db.query('users');
+    return result.map((json) => UserModel.fromMap(json)).toList();
   }
 
   Future<int> updateUser(UserModel user) async {
-    Database db = await instance.database;
+    final db = await instance.database;
     return await db.update(
       'users',
       user.toMap(),
@@ -58,7 +65,7 @@ class DatabaseHelper {
   }
 
   Future<int> deleteUser(int id) async {
-    Database db = await instance.database;
+    final db = await instance.database;
     return await db.delete(
       'users',
       where: 'id = ?',
